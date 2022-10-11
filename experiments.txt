@@ -1,0 +1,1 @@
+ER, SplitCifar100, lr = 0.001, neopochs = 50, acc = 0.28220000000000006
