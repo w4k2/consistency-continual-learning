@@ -1,1 +1,2 @@
-ER, SplitCifar100, lr = 0.001, neopochs = 50, acc = 0.28220000000000006
+ER, SplitCifar100, lr = 0.001, neopochs = 50, acc = 0.28220000000000006 <- it was run with the return task id = True, but for some reason when return_task_id=False, the accuracy drops to 0.07???
+

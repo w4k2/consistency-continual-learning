@@ -7,6 +7,7 @@ from avalanche.training.plugins import EvaluationPlugin
 from avalanche.training import Naive
 
 from .replay import ReplayModified
+from .consistency_regularisation import ConsistencyRegularistaion
 
 
 def get_strategy(args, benchmark, model):
@@ -31,5 +32,10 @@ def get_strategy(args, benchmark, model):
                                      train_mb_size=args.batch_size, eval_mb_size=args.batch_size,
                                      device=args.device, train_epochs=args.n_epochs,
                                      evaluator=eval_plugin, eval_every=-1)
+    elif args.method == 'consistency':
+        cl_strategy = ConsistencyRegularistaion(model, optimizer, criterion, mem_size=args.mem_size,
+                                                train_mb_size=args.batch_size, eval_mb_size=args.batch_size,
+                                                device=args.device, train_epochs=args.n_epochs,
+                                                evaluator=eval_plugin, eval_every=-1)
 
     return cl_strategy

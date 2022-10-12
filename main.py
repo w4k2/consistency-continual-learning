@@ -45,7 +45,9 @@ def parse_args():
     parser.add_argument('--debug', action='store_true', help='if true, execute only one iteration in training epoch')
     parser.add_argument('--interactive_logger', default=True, type=distutils.util.strtobool, help='if True use interactive logger with tqdm for printing in console')
 
-    parser.add_argument('--method', default='replay', choices=('baseline', 'cumulative', 'agem', 'replay', 'lwf', 'mir', 'hat', 'cat'))
+    parser.add_argument('--method', default='replay', choices=('baseline', 'cumulative',
+                                                               'agem', 'replay', 'consistency',
+                                                               'lwf', 'mir', 'hat', 'cat'))
     parser.add_argument('--base_model', default='resnet18', choices=('resnet18', 'reduced_resnet18', 'simpleMLP'))
     parser.add_argument('--dataset', default='cifar100', choices=('cifar100', 'cifar10', 'mnist', 'permutation-mnist', 'tiny-imagenet',
                         'cifar10-mnist-fashion-mnist', 'mnist-fashion-mnist-cifar10', 'fashion-mnist-cifar10-mnist', '5-datasets', 'cores50'))
@@ -73,6 +75,7 @@ def parse_args():
     parser.add_argument('--image_size', default=32, type=int)
 
     parser.add_argument('--mem_size', default=500, type=int)
+    parser.add_argument('--regularisation_type', default='L1', choices=('L1', 'L2'))
 
     args = parser.parse_args()
     if args.train_on_experiences == 'all':
