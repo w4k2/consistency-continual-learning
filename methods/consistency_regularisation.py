@@ -1,13 +1,13 @@
 import torch
 import torch.nn as nn
 
-from torch.utils.data import RandomSampler
 from torch.utils.data.dataloader import DataLoader
+from torch.utils.data.dataset import ConcatDataset
 from avalanche.training.plugins.strategy_plugin import SupervisedPlugin
 from avalanche.training.templates.supervised import SupervisedTemplate
 from avalanche.training.plugins.evaluation import default_evaluator
 
-from .utils import dataset_subset, collate, RehersalSampler, MutliDataset
+from .utils import dataset_subset, collate
 
 
 class MemoryBufferWithPredictions:
@@ -38,21 +38,36 @@ class ConsistencyPlugin(SupervisedPlugin):
         self.mem_size = mem_size
         self.alpha = alpha
         self.beta = beta
-        self.cross_entropy = nn.CrossEntropyLoss(reduction='sum')
+        self.cross_entropy = nn.CrossEntropyLoss()
         self.regularisation = regularisation
         self.datasets_buffer = []
         self.memory_dataloder = []
+        self.memory_dataloder_iter = iter(self.memory_dataloder)
+
+    def before_forward(self, strategy, **kwargs):
+        if len(self.memory_dataloder) > 0:
+            try:
+                x_m, y_m, z_m, _ = next(self.memory_dataloder_iter)
+            except StopIteration:
+                self.memory_dataloder_iter = iter(self.memory_dataloder)
+                x_m, y_m, z_m, _ = next(self.memory_dataloder_iter)
+            x_m = x_m.to(strategy.device)
+            self.y_m = y_m.to(strategy.device)
+            self.z_m = z_m.to(strategy.device)
+
+            self.current_batch_size = len(strategy.mb_x)
+            strategy.mbatch[0] = torch.cat((strategy.mb_x, x_m), dim=0)
+
+    def after_forward(self, strategy, **kwargs):
+        if len(self.memory_dataloder) > 0:
+            self.y_hat = strategy.mb_output[self.current_batch_size:]
+            strategy.mb_output = strategy.mb_output[:self.current_batch_size]
 
     def before_backward(self, strategy, **kwargs):
-        for x_m, y_m, z_m, _ in self.memory_dataloder:
-            B = len(x_m)
-            x_m = x_m.to(strategy.device)
-            y_m = y_m.to(strategy.device)
-            z_m = z_m.to(strategy.device)
-            y_hat = strategy.model(x_m)
-            L_er = self.alpha / B * self.cross_entropy(y_hat, y_m)
+        if len(self.memory_dataloder) > 0:
+            L_er = self.alpha * self.cross_entropy(self.y_hat, self.y_m)
             strategy.loss += L_er
-            L_cr = self.compute_regularistaion(y_hat, z_m)
+            L_cr = self.compute_regularistaion(self.y_hat, self.z_m)
             strategy.loss += self.beta * L_cr
 
     def compute_regularistaion(self, z_hat, z):
@@ -64,26 +79,21 @@ class ConsistencyPlugin(SupervisedPlugin):
         return reg
 
     def after_training_exp(self, strategy, num_workers=10, **kwargs):
-        pred = self.get_predictions(strategy, num_workers)
-        dataset = MemoryBufferWithPredictions(strategy.experience.dataset, pred)
-        self.datasets_buffer.append(dataset)
+        pred = self.get_predictions(strategy, num_workers)  # TODO: get predictions after dataset subset
+        self.datasets_buffer.append(MemoryBufferWithPredictions(strategy.experience.dataset, pred))
 
         new_size = self.mem_size // len(self.datasets_buffer)
         for i in range(len(self.datasets_buffer)):
             self.datasets_buffer[i] = dataset_subset(self.datasets_buffer[i], new_size)
 
-        dataset_list = list(self.datasets_buffer)
-        concat_dataset = MutliDataset(dataset_list)
-        sampler = RehersalSampler(dataset_sizes=[len(dataset) for dataset in dataset_list],
-                                  dataset_samplers=[RandomSampler(dataset) for dataset in dataset_list],
-                                  batch_size=strategy.train_mb_size,
-                                  drop_last=False)
+        concat_dataset = ConcatDataset(self.datasets_buffer)
         self.memory_dataloder = DataLoader(
             concat_dataset,
-            batch_sampler=sampler,
+            batch_size=strategy.train_mb_size,
             num_workers=num_workers,
             collate_fn=collate
         )
+        self.memory_dataloder_iter = iter(self.memory_dataloder)
 
     def get_predictions(self, strategy, num_workers):
         dataset = strategy.adapted_dataset
@@ -108,11 +118,12 @@ class ConsistencyRegularistaion(SupervisedTemplate):
 
     def __init__(self, model, optimizer, criterion,
                  mem_size: int = 200, regularisation_type='L1',
+                 alpha=1.0, beta=1.0,
                  train_mb_size: int = 1, train_epochs: int = 1,
                  eval_mb_size: int = None, device=None,
                  plugins=None,
                  evaluator=default_evaluator, eval_every=-1):
-        plugin = ConsistencyPlugin(regularisation_type, mem_size)
+        plugin = ConsistencyPlugin(regularisation_type, mem_size, alpha=alpha, beta=beta)
         if plugins is None:
             plugins = [plugin]
         else:

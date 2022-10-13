@@ -76,6 +76,8 @@ def parse_args():
 
     parser.add_argument('--mem_size', default=500, type=int)
     parser.add_argument('--regularisation_type', default='L1', choices=('L1', 'L2'))
+    parser.add_argument('--alpha', default=1.0, type=float, help='parameter for consistency regularisation reponsible for cross entropy term for previous tasks')
+    parser.add_argument('--beta', default=1.0, type=float, help='parameter for consistency regularisation reponsible for  consistency regularizer term for predictions')
 
     args = parser.parse_args()
     if args.train_on_experiences == 'all':
