@@ -79,25 +79,29 @@ class ConsistencyPlugin(SupervisedPlugin):
         return reg
 
     def after_training_exp(self, strategy, num_workers=10, **kwargs):
-        pred = self.get_predictions(strategy, num_workers)  # TODO: get predictions after dataset subset
-        self.datasets_buffer.append(MemoryBufferWithPredictions(strategy.experience.dataset, pred))
-
-        new_size = self.mem_size // len(self.datasets_buffer)
+        new_size = self.mem_size // (len(self.datasets_buffer) + 1)
         for i in range(len(self.datasets_buffer)):
             self.datasets_buffer[i] = dataset_subset(self.datasets_buffer[i], new_size)
+
+        dataset = dataset_subset(strategy.experience.dataset, new_size)
+        pred = self.get_predictions(dataset, strategy, num_workers)
+        self.datasets_buffer.append(MemoryBufferWithPredictions(dataset, pred))
 
         concat_dataset = ConcatDataset(self.datasets_buffer)
         self.memory_dataloder = DataLoader(
             concat_dataset,
             batch_size=strategy.train_mb_size,
             num_workers=num_workers,
-            collate_fn=collate
+            collate_fn=collate,
+            shuffle=True
         )
         self.memory_dataloder_iter = iter(self.memory_dataloder)
 
-    def get_predictions(self, strategy, num_workers):
-        dataset = strategy.adapted_dataset
-        dataloader = DataLoader(dataset, batch_size=strategy.eval_mb_size, shuffle=False, num_workers=num_workers)
+    def get_predictions(self, dataset, strategy, num_workers):
+        batch_size = strategy.eval_mb_size
+        if len(dataset) % batch_size == 1:  # make sure that batch norm will work
+            batch_size += 1
+        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
         predictions = []
         with torch.no_grad():
             for x, _, _ in dataloader:

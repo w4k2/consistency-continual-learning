@@ -19,7 +19,6 @@ def main():
 
     results = []
     for i, experience in enumerate(benchmark.train_stream):
-        print("Start of experience: ", experience.current_experience)
         cl_strategy.train(experience, num_workers=args.num_workers)
 
         selected_tasks = [benchmark.test_stream[j] for j in range(0, i+1)]
