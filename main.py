@@ -42,7 +42,7 @@ def parse_args():
     parser.add_argument('--experiment', default='Default', help='mlflow experiment name')
     parser.add_argument('--nested_run', action='store_true', help='create nested run in mlflow')
     parser.add_argument('--debug', action='store_true', help='if true, execute only one iteration in training epoch')
-    parser.add_argument('--interactive_logger', default=True, type=distutils.util.strtobool, help='if True use interactive logger with tqdm for printing in console')
+    parser.add_argument('--interactive_logger', default=False, type=distutils.util.strtobool, help='if True use interactive logger with tqdm for printing in console')
 
     parser.add_argument('--method', default='replay', choices=('baseline', 'cumulative',
                                                                'agem', 'replay', 'consistency',
@@ -74,7 +74,7 @@ def parse_args():
     parser.add_argument('--image_size', default=32, type=int)
 
     parser.add_argument('--mem_size', default=500, type=int)
-    parser.add_argument('--regularisation_type', default='L1', choices=('L1', 'L2'))
+    parser.add_argument('--regularisation_type', default='L1', choices=('L1', 'L2', 'Linf', 'MSE'))
     parser.add_argument('--alpha', default=1.0, type=float, help='parameter for consistency regularisation reponsible for cross entropy term for previous tasks')
     parser.add_argument('--beta', default=1.0, type=float, help='parameter for consistency regularisation reponsible for  consistency regularizer term for predictions')
 

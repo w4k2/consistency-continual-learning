@@ -1,5 +1,5 @@
 import torch
-from torchvision.transforms import Compose, Resize, RandomHorizontalFlip, ToTensor, Normalize, Lambda
+from torchvision.transforms import Compose, Resize, RandomCrop, RandomHorizontalFlip, ToTensor, Normalize, Lambda
 
 from avalanche.benchmarks.classic import PermutedMNIST, SplitCIFAR100, SplitMNIST, SplitCIFAR10, SplitTinyImageNet
 from avalanche.benchmarks.datasets import MNIST, FashionMNIST, CIFAR10, SVHN
@@ -24,7 +24,7 @@ def get_data(dataset_name, n_experiences, seed, image_size):
                                  )
         classes_per_task = benchmark.n_classes_per_exp
     elif dataset_name == 'cifar100':
-        norm_stats = (0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761)
+        norm_stats = (0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2615)
         train_transforms, eval_transforms = get_transforms(norm_stats, image_size)
         benchmark = SplitCIFAR100(n_experiences=n_experiences,
                                   train_transform=train_transforms,
@@ -92,7 +92,8 @@ def get_data(dataset_name, n_experiences, seed, image_size):
 
 def get_transforms(norm_stats, image_size):
     train_list = [
-        Resize((image_size, image_size)),
+        # Resize((image_size, image_size)),
+        RandomCrop(image_size, padding=4),
         RandomHorizontalFlip(p=0.5),
         ToTensor(),
         Normalize(*norm_stats),

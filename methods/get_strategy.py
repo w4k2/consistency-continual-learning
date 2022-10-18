@@ -2,7 +2,7 @@ from torch.optim import SGD
 from torch.nn import CrossEntropyLoss
 
 from avalanche.evaluation.metrics import accuracy_metrics
-from avalanche.logging import InteractiveLogger
+from avalanche.logging import InteractiveLogger, TextLogger
 from avalanche.training.plugins import EvaluationPlugin
 from avalanche.training import Naive
 
@@ -11,11 +11,14 @@ from .consistency_regularisation import ConsistencyRegularistaion
 
 
 def get_strategy(args, benchmark, model):
-    interactive_logger = InteractiveLogger()
-
+    loggers = list()
+    if args.interactive_logger:
+        loggers.append(InteractiveLogger())
+    else:
+        loggers.append(TextLogger())
     eval_plugin = EvaluationPlugin(
         accuracy_metrics(minibatch=True, epoch=True, experience=True, stream=True),
-        loggers=[interactive_logger],
+        loggers=loggers,
         benchmark=benchmark
     )
     optimizer = SGD(model.parameters(), lr=args.lr, momentum=0.9)

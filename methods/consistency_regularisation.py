@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from torch.nn import functional as F
 
 from torch.utils.data.dataloader import DataLoader
 from torch.utils.data.dataset import ConcatDataset
@@ -46,34 +47,50 @@ class ConsistencyPlugin(SupervisedPlugin):
 
     def before_forward(self, strategy, **kwargs):
         if len(self.memory_dataloder) > 0:
-            try:
-                x_m, y_m, z_m, _ = next(self.memory_dataloder_iter)
-            except StopIteration:
-                self.memory_dataloder_iter = iter(self.memory_dataloder)
-                x_m, y_m, z_m, _ = next(self.memory_dataloder_iter)
-            x_m = x_m.to(strategy.device)
-            self.y_m = y_m.to(strategy.device)
-            self.z_m = z_m.to(strategy.device)
-
             self.current_batch_size = len(strategy.mb_x)
+
+            x_m, self.y_m, _ = self.sample_from_memory(strategy)
             strategy.mbatch[0] = torch.cat((strategy.mb_x, x_m), dim=0)
+            self.mem_batch_size = len(x_m)
+            x_m, _, self.z_m = self.sample_from_memory(strategy)
+            strategy.mbatch[0] = torch.cat((strategy.mb_x, x_m), dim=0)
+
+    def sample_from_memory(self, strategy):
+        try:
+            x_m, y_m, z_m, _ = next(self.memory_dataloder_iter)
+        except StopIteration:
+            self.memory_dataloder_iter = iter(self.memory_dataloder)
+            x_m, y_m, z_m, _ = next(self.memory_dataloder_iter)
+        x_m = x_m.to(strategy.device)
+        y_m = y_m.to(strategy.device)
+        z_m = z_m.to(strategy.device)
+        return x_m, y_m, z_m
 
     def after_forward(self, strategy, **kwargs):
         if len(self.memory_dataloder) > 0:
-            self.y_hat = strategy.mb_output[self.current_batch_size:]
+            self.y_hat = strategy.mb_output[self.current_batch_size:self.current_batch_size+self.mem_batch_size]
+            self.y_hat_dist = strategy.mb_output[self.current_batch_size+self.mem_batch_size:]
             strategy.mb_output = strategy.mb_output[:self.current_batch_size]
 
     def before_backward(self, strategy, **kwargs):
         if len(self.memory_dataloder) > 0:
             L_er = self.alpha * self.cross_entropy(self.y_hat, self.y_m)
             strategy.loss += L_er
-            L_cr = self.compute_regularistaion(self.y_hat, self.z_m)
+            L_cr = self.compute_regularistaion(self.y_hat_dist, self.z_m)
             strategy.loss += self.beta * L_cr
 
     def compute_regularistaion(self, z_hat, z):
         if self.regularisation == 'L1':
             reg = torch.norm(z_hat - z, dim=1, p=1)
             reg = reg.mean()
+        elif self.regularisation == 'L2':
+            reg = torch.norm(z_hat - z, dim=1, p=2)
+            reg = reg.mean()
+        elif self.regularisation == 'Linf':
+            reg = torch.pairwise_distance(z_hat, z, p=float('inf'))
+            reg = reg.mean()
+        elif self.regularisation == 'MSE':
+            reg = F.mse_loss(z_hat, z)
         else:
             raise ValueError(f"Invalid regularistation type, got: {self.regularisation}")
         return reg
