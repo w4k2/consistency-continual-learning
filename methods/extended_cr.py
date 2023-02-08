@@ -54,7 +54,7 @@ class ExtendedConsistencyPlugin(SupervisedPlugin):
             x_m, self.y_m, _ = self.sample_from_memory(strategy)
             strategy.mbatch[0] = torch.cat((strategy.mb_x, x_m), dim=0)
             self.mem_batch_size = len(x_m)
-            self.act_x_m, _, self.act_list = self.sample_from_memory(strategy)
+            x_m, _, self.act_list = self.sample_from_memory(strategy)
             strategy.mbatch[0] = torch.cat((strategy.mb_x, x_m), dim=0)
 
     def sample_from_memory(self, strategy):
