@@ -17,6 +17,14 @@ CR 20 tasks, epochs=50, lr=0.003, seed=42, Linf, acc =  0.3366
 same, epochs=10 acc =  0.30
 same epochs=30, acc =  0.30439999999999995
 5 tasks lr=0.003 acc =  0.2263
+for comparison no task id, 10 epochs: acc = 0.115 why??
+
+python main.py --method="extended_consistency" --lr=0.003 --seed=42 --n_experiences=20 --regularisation_type="Linf" --n_epochs=50 --last_k_layers=2 &> extended_last_2_layers.txt
+acc = 
+python main.py --method="extended_consistency" --lr=0.003 --seed=42 --n_experiences=20 --regularisation_type="Linf" --n_epochs=50 --last_k_layers=3 --device="cuda:1" &> extended_last_3_layers.txt
+acc = 
+python main.py --method="extended_consistency" --lr=0.003 --seed=42 --n_experiences=20 --regularisation_type="Linf" --n_epochs=50 --last_k_layers=4
+
 
 original repo CR [Class-IL]: 23.06 %
 original repo CIFAR100 5 tasks class-incremental acc = 40.58 %

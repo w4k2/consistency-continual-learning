@@ -129,7 +129,7 @@ class ExtendedConsistencyPlugin(SupervisedPlugin):
         with torch.no_grad():
             for x, _, _ in dataloader:
                 x = x.to(strategy.device)
-                features = strategy.model.features(x)
+                features = strategy.model.features()
                 for i, f in enumerate(features[-self.last_k_layers:]):
                     if len(all_activations) == i:
                         all_activations.append([])
