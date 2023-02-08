@@ -59,10 +59,10 @@ class ExtendedConsistencyPlugin(SupervisedPlugin):
 
     def sample_from_memory(self, strategy):
         try:
-            x_m, y_m, activations_list, _ = next(self.memory_dataloder_iter)
+            x_m, y_m, *activations_list, _ = next(self.memory_dataloder_iter)
         except StopIteration:
             self.memory_dataloder_iter = iter(self.memory_dataloder)
-            x_m, y_m, activations_list, _ = next(self.memory_dataloder_iter)
+            x_m, y_m, *activations_list, _ = next(self.memory_dataloder_iter)
         x_m = x_m.to(strategy.device)
         y_m = y_m.to(strategy.device)
         activations_list = [a.to(strategy.device) for a in activations_list]
@@ -71,7 +71,7 @@ class ExtendedConsistencyPlugin(SupervisedPlugin):
     def after_forward(self, strategy, **kwargs):
         if len(self.memory_dataloder) > 0:
             self.y_hat = strategy.mb_output[self.current_batch_size:self.current_batch_size+self.mem_batch_size]
-            self.y_hat_dist = strategy.mb_output[self.current_batch_size+self.mem_batch_size:]
+            # self.y_hat_dist = strategy.mb_output[self.current_batch_size+self.mem_batch_size:]
             strategy.mb_output = strategy.mb_output[:self.current_batch_size]
 
     def before_backward(self, strategy, **kwargs):
@@ -83,6 +83,7 @@ class ExtendedConsistencyPlugin(SupervisedPlugin):
                 features = strategy.model.features()
                 features = features[-self.last_k_layers:]
             for (y_hat_dist, z_m) in zip(features, self.act_list):
+                y_hat_dist = y_hat_dist[self.current_batch_size+self.mem_batch_size:]
                 L_cr = self.compute_regularistaion(y_hat_dist, z_m)
                 strategy.loss += self.alpha * L_cr
 
@@ -129,6 +130,7 @@ class ExtendedConsistencyPlugin(SupervisedPlugin):
         with torch.no_grad():
             for x, _, _ in dataloader:
                 x = x.to(strategy.device)
+                strategy.model(x)
                 features = strategy.model.features()
                 for i, f in enumerate(features[-self.last_k_layers:]):
                     if len(all_activations) == i:
