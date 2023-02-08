@@ -74,21 +74,18 @@ class ConsistencyPlugin(SupervisedPlugin):
 
     def before_backward(self, strategy, **kwargs):
         if len(self.memory_dataloder) > 0:
-            L_er = self.alpha * self.cross_entropy(self.y_hat, self.y_m)
+            L_er = self.beta * self.cross_entropy(self.y_hat, self.y_m)  # for some reason alpha and beta are switched comparing paper and implementation, here we follow original implementation
             strategy.loss += L_er
             L_cr = self.compute_regularistaion(self.y_hat_dist, self.z_m)
-            strategy.loss += self.beta * L_cr
+            strategy.loss += self.alpha * L_cr
 
     def compute_regularistaion(self, z_hat, z):
         if self.regularisation == 'L1':
-            reg = torch.norm(z_hat - z, dim=1, p=1)
-            reg = reg.mean()
+            reg = torch.pairwise_distance(z_hat, z, p=1).mean()
         elif self.regularisation == 'L2':
-            reg = torch.norm(z_hat - z, dim=1, p=2)
-            reg = reg.mean()
+            reg = torch.pairwise_distance(z_hat, z, p=2).mean()
         elif self.regularisation == 'Linf':
-            reg = torch.pairwise_distance(z_hat, z, p=float('inf'))
-            reg = reg.mean()
+            reg = torch.pairwise_distance(z_hat, z, p=float('inf')).mean()
         elif self.regularisation == 'MSE':
             reg = F.mse_loss(z_hat, z)
         else:
@@ -97,14 +94,16 @@ class ConsistencyPlugin(SupervisedPlugin):
 
     def after_training_exp(self, strategy, num_workers=10, **kwargs):
         new_size = self.mem_size // (len(self.datasets_buffer) + 1)
+        rest = self.mem_size % (len(self.datasets_buffer) + 1)
         for i in range(len(self.datasets_buffer)):
             self.datasets_buffer[i] = dataset_subset(self.datasets_buffer[i], new_size)
 
-        dataset = dataset_subset(strategy.experience.dataset, new_size)
+        dataset = dataset_subset(strategy.experience.dataset, new_size + rest)
         pred = self.get_predictions(dataset, strategy, num_workers)
         self.datasets_buffer.append(MemoryBufferWithPredictions(dataset, pred))
 
         concat_dataset = ConcatDataset(self.datasets_buffer)
+        assert len(concat_dataset) == self.mem_size
         self.memory_dataloder = DataLoader(
             concat_dataset,
             batch_size=strategy.train_mb_size,

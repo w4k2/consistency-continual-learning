@@ -1,2 +1,24 @@
 ER, SplitCifar100, lr = 0.001, neopochs = 50, acc = 0.28220000000000006 <- it was run with the return task id = True, but for some reason when return_task_id=False, the accuracy drops to 0.07???
-CR, SplitCifar100, lr = 0.001, neopochs = 50, acc = 0.2894
+CR, SplitCifar100, lr = 0.001, neopochs = 50, L1 reg, acc = 0.2894
+CR, SplitCifar100, lr = 0.001, neopochs = 50, L2 reg, acc = 0.2993
+CR, SplitCifar100, lr = 0.001, neopochs = 50, Linf reg, acc = 0.2967
+Linf, Cifar10 transform stats, acc = 0.298
+
+
+new runs
+ER SplitCifar100 lr = 0.001, nepochs=50, acc = 0.28040000000000004
+CR SplitCifar100 lr = 0.03, nepochs=50, acc =  0.27380000000000004
+CR repeat the same parameters, seed = 100, acc =  0.2653
+CR alpha and beta switched, first conv kernel size = 3, acc =  0.2913
+CR MSE 0.3187
+CR Linf acc =  0.33
+
+original repo CR [Class-IL]: 23.06 %
+original repo CIFAR100 5 tasks class-incremental acc = 40.58 %
+original repo resnet18 with conv1 kernel size 7 acc = 31.2 %
+original repo class-il L1 seed=42 25.31 %
+same but seed=43 24.98
+same but seed=44 acc 24.2
+same but seed=10 21.78
+pretex task linf seed 10 41.42
+pretex task linf seed 42 44.02

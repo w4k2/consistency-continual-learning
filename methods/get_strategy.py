@@ -21,7 +21,7 @@ def get_strategy(args, benchmark, model):
         loggers=loggers,
         benchmark=benchmark
     )
-    optimizer = SGD(model.parameters(), lr=args.lr, momentum=0.9)
+    optimizer = SGD(model.parameters(), lr=args.lr)
     criterion = CrossEntropyLoss()
 
     if args.method == 'naive':
