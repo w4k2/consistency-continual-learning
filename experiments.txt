@@ -13,6 +13,11 @@ CR alpha and beta switched, first conv kernel size = 3, acc =  0.2913
 CR MSE 0.3187
 CR Linf acc =  0.33
 
+CR 20 tasks, epochs=50, lr=0.003, seed=42, Linf, acc =  0.3366
+same, epochs=10 acc =  0.30
+same epochs=30, acc =  0.30439999999999995
+5 tasks lr=0.003 acc =  0.2263
+
 original repo CR [Class-IL]: 23.06 %
 original repo CIFAR100 5 tasks class-incremental acc = 40.58 %
 original repo resnet18 with conv1 kernel size 7 acc = 31.2 %

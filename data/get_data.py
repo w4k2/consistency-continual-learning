@@ -20,7 +20,7 @@ def get_data(dataset_name, n_experiences, seed, image_size):
                                  train_transform=train_transforms,
                                  eval_transform=eval_transforms,
                                  seed=seed,
-                                 return_task_id=True
+                                 return_task_id=False
                                  )
         classes_per_task = benchmark.n_classes_per_exp
     elif dataset_name == 'cifar100':
@@ -30,7 +30,7 @@ def get_data(dataset_name, n_experiences, seed, image_size):
                                   train_transform=train_transforms,
                                   eval_transform=eval_transforms,
                                   seed=seed,
-                                  return_task_id=True
+                                  return_task_id=False
                                   )
         classes_per_task = benchmark.n_classes_per_exp
     elif dataset_name == 'mnist':
@@ -58,7 +58,7 @@ def get_data(dataset_name, n_experiences, seed, image_size):
                                       train_transform=train_transforms,
                                       eval_transform=eval_transforms,
                                       seed=seed,
-                                      return_task_id=True,
+                                      return_task_id=False,
                                       )
         classes_per_task = benchmark.n_classes_per_exp
     elif dataset_name == 'cifar10-mnist-fashion-mnist':

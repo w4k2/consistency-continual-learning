@@ -3,8 +3,7 @@ import distutils.util
 
 import data
 import methods
-
-from torchvision.models import resnet
+import resnet
 
 
 def main():
@@ -14,7 +13,6 @@ def main():
     num_classes = sum(classes_per_task)
 
     model = resnet.resnet18(num_classes=num_classes)
-
     cl_strategy = methods.get_strategy(args, benchmark, model)
 
     results = []
@@ -27,7 +25,7 @@ def main():
 
     avrg_acc = 0.0
     for j in range(len(benchmark.train_stream)):
-        acc_name = 'Top1_Acc_Stream/eval_phase/test_stream/Task{:03d}'.format(j)
+        acc_name = 'Top1_Acc_Exp/eval_phase/test_stream/Task000/Exp{:03d}'.format(j)
         task_acc = eval_results[acc_name]
         avrg_acc += task_acc
 
@@ -77,6 +75,7 @@ def parse_args():
     parser.add_argument('--regularisation_type', default='L1', choices=('L1', 'L2', 'Linf', 'MSE'))
     parser.add_argument('--alpha', default=0.2, type=float, help='parameter for consistency regularisation reponsible for cross entropy term for previous tasks')
     parser.add_argument('--beta', default=0.5, type=float, help='parameter for consistency regularisation reponsible for  consistency regularizer term for predictions')
+    parser.add_argument('--last_k_layers', default=2, type=int)
 
     args = parser.parse_args()
     if args.train_on_experiences == 'all':
