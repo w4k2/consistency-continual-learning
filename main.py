@@ -42,7 +42,7 @@ def parse_args():
     parser.add_argument('--debug', action='store_true', help='if true, execute only one iteration in training epoch')
     parser.add_argument('--interactive_logger', default=False, type=distutils.util.strtobool, help='if True use interactive logger with tqdm for printing in console')
 
-    parser.add_argument('--method', default='replay', choices=('baseline', 'cumulative',
+    parser.add_argument('--method', default='replay', choices=('baseline', 'cumulative', 'extended_consistency',
                                                                'agem', 'replay', 'consistency',
                                                                'lwf', 'mir', 'hat', 'cat'))
     parser.add_argument('--base_model', default='resnet18', choices=('resnet18', 'reduced_resnet18', 'simpleMLP'))
