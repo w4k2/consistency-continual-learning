@@ -148,8 +148,8 @@ class SequentialWithBuffering(nn.Sequential):
         self.activations = []
         for module in self:
             input, act_tmp = module(input)
-            self.activations.append(input)
             self.activations.append(act_tmp)
+            self.activations.append(input)
         return input
 
 
@@ -213,6 +213,8 @@ class ResNet(nn.Module):
                     nn.init.constant_(m.bn3.weight, 0)  # type: ignore[arg-type]
                 elif isinstance(m, BasicBlock):
                     nn.init.constant_(m.bn2.weight, 0)  # type: ignore[arg-type]
+        
+        self.last_activation = None
 
     def _make_layer(self, block: Type[Union[BasicBlock, Bottleneck]], planes: int, blocks: int,
                     stride: int = 1, dilate: bool = False) -> nn.Sequential:
@@ -254,6 +256,7 @@ class ResNet(nn.Module):
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
         x = self.fc(x)
+        self.last_activation = x
 
         return x
 
@@ -264,6 +267,7 @@ class ResNet(nn.Module):
         features = []
         for layer in (self.layer1, self.layer2, self.layer3, self.layer4):
             features.extend(layer.activations)
+        features.append(self.last_activation)
         return features
 
 
