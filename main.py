@@ -1,5 +1,9 @@
 import argparse
 import distutils.util
+import random, os
+import numpy as np
+import torch
+
 
 import data
 import methods
@@ -8,6 +12,7 @@ import resnet
 
 def main():
     args = parse_args()
+    seed_everything(args.seed)
 
     benchmark, classes_per_task = data.get_data(args.dataset, args.n_experiences, args.seed, args.image_size)
     num_classes = sum(classes_per_task)
@@ -25,7 +30,7 @@ def main():
 
     avrg_acc = 0.0
     for j in range(len(benchmark.train_stream)):
-        acc_name = 'Top1_Acc_Exp/eval_phase/test_stream/Task000/Exp{:03d}'.format(j)
+        acc_name = 'Top1_Acc_Stream/eval_phase/test_stream/Task{:03d}'.format(j)
         task_acc = eval_results[acc_name]
         avrg_acc += task_acc
 
@@ -82,6 +87,15 @@ def parse_args():
         args.train_on_experiences = args.n_experiences
     return args
 
+
+def seed_everything(seed: int):    
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False # change to true for faster convergence
 
 if __name__ == "__main__":
     main()
