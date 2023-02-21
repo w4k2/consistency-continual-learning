@@ -63,7 +63,7 @@ same, but dataset size = 0.1 acc = 0.33452
 
 Compare Linf, KD, and L2 normalization cosine similarity
 python main.py --method="extended_consistency" --lr=0.003 --seed=42 --n_experiences=20 --regularisation_type="Linf" --n_epochs=50
-acc = 
+acc = 0.3370000000000001
 python main.py --method="extended_consistency" --lr=0.003 --seed=42 --n_experiences=20 --regularisation_type="KD" --n_epochs=50
 acc = 
 python main.py --method="extended_consistency" --lr=0.003 --seed=42 --n_experiences=20 --regularisation_type="cosine" --n_epochs=50
