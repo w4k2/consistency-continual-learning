@@ -1,6 +1,7 @@
 import argparse
 import distutils.util
-import random, os
+import random
+import os
 import numpy as np
 import torch
 
@@ -77,10 +78,9 @@ def parse_args():
     parser.add_argument('--image_size', default=32, type=int)
 
     parser.add_argument('--mem_size', default=500, type=int)
-    parser.add_argument('--regularisation_type', default='L1', choices=('L1', 'L2', 'Linf', 'MSE'))
-    parser.add_argument('--alpha', default=0.2, type=float, help='parameter for consistency regularisation reponsible for cross entropy term for previous tasks')
-    parser.add_argument('--beta', default=0.5, type=float, help='parameter for consistency regularisation reponsible for  consistency regularizer term for predictions')
-    parser.add_argument('--last_k_layers', default=2, type=int)
+    parser.add_argument('--regularisation_type', default='L1', choices=('L1', 'L2', 'Linf', 'MSE', 'KD', 'cosine'))
+    parser.add_argument('--alpha', default=0.2, type=float, help='parameter for consistency regularisation reponsible for consistency regularizer term for predictions')
+    parser.add_argument('--beta', default=0.5, type=float, help='parameter for consistency regularisation reponsible for cross entropy term for previous tasks')
 
     args = parser.parse_args()
     if args.train_on_experiences == 'all':
@@ -88,14 +88,15 @@ def parse_args():
     return args
 
 
-def seed_everything(seed: int):    
+def seed_everything(seed: int):
     random.seed(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False # change to true for faster convergence
+    torch.backends.cudnn.benchmark = False  # change to true for faster convergence
+
 
 if __name__ == "__main__":
     main()
