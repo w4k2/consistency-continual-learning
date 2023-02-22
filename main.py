@@ -81,6 +81,7 @@ def parse_args():
     parser.add_argument('--regularisation_type', default='L1', choices=('L1', 'L2', 'Linf', 'MSE', 'KD', 'cosine'))
     parser.add_argument('--alpha', default=0.2, type=float, help='parameter for consistency regularisation reponsible for consistency regularizer term for predictions')
     parser.add_argument('--beta', default=0.5, type=float, help='parameter for consistency regularisation reponsible for cross entropy term for previous tasks')
+    parser.add_argument('--use_layer', default=-1, type=int, help='what activations to use')
 
     args = parser.parse_args()
     if args.train_on_experiences == 'all':

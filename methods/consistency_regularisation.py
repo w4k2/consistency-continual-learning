@@ -75,7 +75,7 @@ class ConsistencyPlugin(SupervisedPlugin):
     def before_backward(self, strategy, **kwargs):
         if len(self.memory_dataloder) > 0:
             L_er = self.beta * self.cross_entropy(self.y_hat, self.y_m)  # for some reason alpha and beta are switched comparing paper and implementation, here we follow original implementation
-            strategy.loss += L_er
+            strategy.loss = L_er
             L_cr = self.compute_regularistaion(self.y_hat_dist, self.z_m)
             strategy.loss += self.alpha * L_cr
 
