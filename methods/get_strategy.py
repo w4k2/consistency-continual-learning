@@ -51,7 +51,7 @@ def get_strategy(args, benchmark, model):
                                                 evaluator=eval_plugin, eval_every=-1, plugins=plugins)
     elif args.method == 'extended_consistency':
         cl_strategy = ExtendedConsistencyRegularistaion(model, optimizer, criterion, mem_size=args.mem_size,
-                                                        regularisation_type=args.regularisation_type, use_layer=args.use_layer,
+                                                        regularisation_type=args.regularisation_type, use_layer=args.use_layer, T=args.T,
                                                         alpha=args.alpha, beta=args.beta,
                                                         train_mb_size=args.batch_size, eval_mb_size=args.batch_size,
                                                         device=args.device, train_epochs=args.n_epochs,

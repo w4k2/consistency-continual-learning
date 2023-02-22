@@ -142,13 +142,13 @@ class ExtendedConsistencyPlugin(SupervisedPlugin):
 
 class ExtendedConsistencyRegularistaion(SupervisedTemplate):
     def __init__(self, model, optimizer, criterion,
-                 mem_size: int = 200, regularisation_type='L1', use_layer=-1,
+                 mem_size: int = 200, regularisation_type='L1', use_layer=-1, T=5,
                  alpha=1.0, beta=1.0,
                  train_mb_size: int = 1, train_epochs: int = 1,
                  eval_mb_size: int = None, device=None,
                  plugins=None,
                  evaluator=default_evaluator, eval_every=-1):
-        plugin = ExtendedConsistencyPlugin(regularisation_type, mem_size, use_layer=use_layer, alpha=alpha, beta=beta)
+        plugin = ExtendedConsistencyPlugin(regularisation_type, mem_size, use_layer=use_layer, T=T, alpha=alpha, beta=beta)
         if plugins is None:
             plugins = [plugin]
         else:
