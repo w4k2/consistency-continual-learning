@@ -77,7 +77,7 @@ class ExtendedConsistencyPlugin(SupervisedPlugin):
     def before_backward(self, strategy, **kwargs):
         if len(self.memory_dataloder) > 0:
             L_er = self.beta * self.cross_entropy(self.y_hat, self.y_m)  # for some reason alpha and beta are switched comparing paper and implementation, here we follow original implementation
-            strategy.loss = L_er
+            strategy.loss += L_er
 
             features = strategy.model.features()[self.use_layer][self.current_batch_size+self.mem_batch_size:]
             L_cr = self.compute_regularistaion(features, self.z_m)
