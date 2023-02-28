@@ -19,6 +19,7 @@ def main():
     num_classes = sum(classes_per_task)
 
     model = resnet.resnet18(num_classes=num_classes)
+    # torch.save(model.state_dict(), f'resnet_before_training.pth')
     cl_strategy = methods.get_strategy(args, benchmark, model)
 
     results = []
@@ -28,6 +29,8 @@ def main():
         selected_tasks = [benchmark.test_stream[j] for j in range(0, i+1)]
         eval_results = cl_strategy.eval(selected_tasks, num_workers=20)
         results.append(eval_results)
+
+        # torch.save(model.state_dict(), f'resnet_after_{i}.pth')
 
     avrg_acc = 0.0
     for j in range(len(benchmark.train_stream)):
