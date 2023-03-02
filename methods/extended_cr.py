@@ -46,6 +46,7 @@ class ExtendedConsistencyPlugin(SupervisedPlugin):
         self.memory_dataloder_iter = iter(self.memory_dataloder)
         self.T = T
         self.use_layer = use_layer
+        self.trained_classes = 0
 
     def before_forward(self, strategy, **kwargs):
         if len(self.memory_dataloder) > 0:
@@ -85,11 +86,14 @@ class ExtendedConsistencyPlugin(SupervisedPlugin):
 
     def compute_regularistaion(self, z_hat, z):
         if self.regularisation == 'L1':
-            reg = torch.pairwise_distance(z_hat, z, p=1).mean()
+            reg = torch.pairwise_distance(z_hat, z, p=1)
+            reg = reg[:self.trained_classes].mean()
         elif self.regularisation == 'L2':
-            reg = torch.pairwise_distance(z_hat, z, p=2).mean()
+            reg = torch.pairwise_distance(z_hat, z, p=2)
+            reg = reg[:self.trained_classes].mean()
         elif self.regularisation == 'Linf':
-            reg = torch.pairwise_distance(z_hat, z, p=float('inf')).mean()
+            reg = torch.pairwise_distance(z_hat, z, p=float('inf'))
+            reg = reg[:self.trained_classes].mean()
         elif self.regularisation == 'MSE':
             reg = F.mse_loss(z_hat, z)
         elif self.regularisation == 'KD':
@@ -103,13 +107,28 @@ class ExtendedConsistencyPlugin(SupervisedPlugin):
         return reg
 
     def after_training_exp(self, strategy, num_workers=10, **kwargs):
+        self.trained_classes += 5
+
         new_size = self.mem_size // (len(self.datasets_buffer) + 1)
         rest = self.mem_size % (len(self.datasets_buffer) + 1)
         for i in range(len(self.datasets_buffer)):
             self.datasets_buffer[i] = dataset_subset(self.datasets_buffer[i], new_size)
+            self.datasets_buffer[i] = self.update_predictions(self.datasets_buffer[i], strategy, num_workers)
 
         dataset = dataset_subset(strategy.experience.dataset, new_size + rest)
         pred = self.get_predictions(dataset, strategy, num_workers)
+        pred = self.equlize(pred)
+        # print(pred)
+        # print(pred.shape)
+        # import matplotlib.pyplot as plt
+        # for i in range(5):
+        #     plt.subplot(5, 1, i+1)
+        #     plt.bar(list(range(100)), pred[i].numpy())
+        #     plt.xlabel('class')
+        #     if i == 2:
+        #         plt.ylabel('logits values')
+        # plt.show()
+        # exit()
         self.datasets_buffer.append(MemoryBufferWithPredictions(dataset, pred))
 
         concat_dataset = ConcatDataset(self.datasets_buffer)
@@ -123,6 +142,19 @@ class ExtendedConsistencyPlugin(SupervisedPlugin):
         )
         self.memory_dataloder_iter = iter(self.memory_dataloder)
 
+    def update_predictions(self, dataset, strategy, num_workers):
+        updated_predictions = self.get_predictions(dataset.dataset, strategy, num_workers)
+        updated_predictions = self.equlize(updated_predictions)
+        old_predictions = dataset.dataset.preditctions
+
+        new_predictions = 0.8 * old_predictions + 0.2 * updated_predictions
+        dataset.dataset.preditctions = new_predictions
+        return dataset
+
+    def equlize(self, vectors):
+        vectors[:, self.trained_classes:] = torch.mean(vectors[:, self.trained_classes:], dim=1, keepdim=True)
+        return vectors
+
     def get_predictions(self, dataset, strategy, num_workers):
         batch_size = strategy.eval_mb_size
         if len(dataset) % batch_size == 1:  # make sure that batch norm will work
@@ -130,8 +162,8 @@ class ExtendedConsistencyPlugin(SupervisedPlugin):
         dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
         features = []
         with torch.no_grad():
-            for x, _, _ in dataloader:
-                x = x.to(strategy.device)
+            for data in dataloader:
+                x = data[0].to(strategy.device)
                 strategy.model(x)
                 f = strategy.model.features()[self.use_layer]
                 f = f.to("cpu")

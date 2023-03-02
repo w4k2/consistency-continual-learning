@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import random
 import os
 import numpy as np
@@ -70,8 +71,15 @@ def main():
     student_model = resnet18(num_classes=100)
     student_model = student_model.to(device)
     optimizer = optim.Adam(student_model.parameters(), lr=0.001, weight_decay=0.0001)
-    T = 20
+    T = 5
     alpha = 0.8
+
+    classes = list(range(100))
+    norms = list()
+    angles = list()
+    for _ in classes:
+        norms.append([])
+        angles.append([])
 
     for epoch in range(epochs):
         student_model.train()
@@ -94,8 +102,34 @@ def main():
             loss.backward()
             optimizer.step()
 
+        with torch.no_grad():
+            for class_idx in classes:
+                weights = student_model.fc.weight
+                vector = weights[class_idx].cpu()
+                norm = torch.norm(vector, p=2).item()
+                norms[class_idx].append(norm)
+                versor = torch.eye(len(vector), 1).flatten()
+                angle = torch.arccos(torch.dot(vector, versor) / norm).item()
+                angles[class_idx].append(angle)
+
         test_acc = eval(student_model, test_dataloder, device)
         print(f'student training epoch {epoch} finished, test acc = {test_acc}')
+
+    plt.subplot(2, 1, 1)
+    for angle, class_idx in zip(angles, classes):
+        plt.plot(angle, label=f'class {class_idx}')
+    plt.xlabel('epoch')
+    plt.ylabel('weights vector angle')
+    # plt.legend()
+
+    plt.subplot(2, 1, 2)
+    for class_norms, class_idx in zip(norms, classes):
+        plt.plot(class_norms, label=f'class {class_idx}')
+    plt.xlabel('epoch')
+    plt.ylabel('L2 norm of last class weights')
+    # plt.legend()
+
+    plt.show()
 
 
 def eval(model, test_dataloader, device):

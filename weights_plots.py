@@ -13,7 +13,7 @@ with torch.no_grad():
         norms.append(list())
         angles.append(list())
         for i in range(20):
-            model.load_state_dict(torch.load(f'resnet_after_{i}.pth'))
+            model.load_state_dict(torch.load(f'weights/resnet_after_{i}.pth'))
             weights = model.fc.weight
             vector = weights[class_idx]
             norm = torch.norm(vector, p=2).item()
