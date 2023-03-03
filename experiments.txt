@@ -68,3 +68,11 @@ python main.py --method="extended_consistency" --lr=0.003 --seed=42 --n_experien
 acc = 0.3339
 python main.py --method="extended_consistency" --lr=0.003 --seed=42 --n_experiences=20 --regularisation_type="cosine" --n_epochs=50
 acc = 0.3267
+
+
+Linf regularize only learned logits:
+python main.py --method="extended_consistency" --lr=0.003 --seed=42 --n_experiences=20 --regularisation_type="Linf" --n_epochs=50
+acc =  0.32869999999999994
+
+python main.py --method="extended_consistency" --lr=0.003 --seed=42 --n_experiences=20 --regularisation_type="Linf" --n_epochs=50 --alpha=0.9
+acc =  0.3219
