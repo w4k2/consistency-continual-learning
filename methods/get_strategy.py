@@ -1,4 +1,4 @@
-import utils
+import utils.utils as utils
 
 from torch.optim import SGD
 from torch.nn import CrossEntropyLoss
@@ -11,6 +11,7 @@ from avalanche.training import Naive
 from .replay import ReplayModified
 from .consistency_regularisation import ConsistencyRegularistaion
 from .extended_cr import ExtendedConsistencyRegularistaion
+from .mlflow_logger import MLFlowLogger
 
 
 def get_strategy(args, benchmark, model):
@@ -24,6 +25,10 @@ def get_strategy(args, benchmark, model):
         loggers=loggers,
         benchmark=benchmark
     )
+
+    mlf_logger = MLFlowLogger(experiment_name=args.experiment, nested=args.nested_run, run_name=args.run_name)
+    mlf_logger.log_parameters(args.__dict__)
+    loggers.append(mlf_logger)
 
     plugins = list()
     if args.debug:
@@ -57,4 +62,4 @@ def get_strategy(args, benchmark, model):
                                                         device=args.device, train_epochs=args.n_epochs,
                                                         evaluator=eval_plugin, eval_every=-1, plugins=plugins)
 
-    return cl_strategy
+    return cl_strategy, mlf_logger
