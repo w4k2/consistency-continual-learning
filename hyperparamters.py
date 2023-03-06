@@ -7,7 +7,7 @@ def main():
     args = parse_args()
     args.nested_run = True
     args.debug = False
-    args.train_on_experiences = 1  # TODO change to 10
+    args.train_on_experiences = 10
     args.seed = 3141592
     if args.run_name is None:
         args.run_name = f'{args.method} hyperparameters'
@@ -38,8 +38,8 @@ def main():
             run_experiment(args)
 
 
-def grid_search(args, experiment_id, num_repeats=2):  # TODO change num repeates to 3
-    for alpha in (0.1, 0.3):  # (0.1, 0.3, 0.5, 0.7, 0.9): # TODO change
+def grid_search(args, experiment_id, num_repeats=3):
+    for alpha in (0.1, 0.3, 0.5, 0.7, 0.9):
         run_name = f'{args.method}, alpha={alpha}'
         with mlflow.start_run(experiment_id=experiment_id, run_name=run_name, nested=True):
             for i in range(num_repeats):

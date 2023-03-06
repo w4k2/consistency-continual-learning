@@ -1,0 +1,15 @@
+artifact_uri: file:///home/jkozal/Documents/PWr/consistency/mlruns/0/b7360ebb04614374a97494a0a88de085/artifacts
+end_time: 1677859502671
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: b7360ebb04614374a97494a0a88de085
+run_name: finetuning baseline run
+run_uuid: b7360ebb04614374a97494a0a88de085
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1677859502662
+status: 3
+tags: []
+user_id: jkozal

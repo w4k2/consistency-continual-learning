@@ -1,0 +1,15 @@
+artifact_uri: file:///home/jkozal/Documents/PWr/consistency/mlruns/0/5fe5e7afca79467f85934315ac890307/artifacts
+end_time: 1677859172762
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 5fe5e7afca79467f85934315ac890307
+run_name: ER baseline run
+run_uuid: 5fe5e7afca79467f85934315ac890307
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1677857537515
+status: 3
+tags: []
+user_id: jkozal
