@@ -1,0 +1,15 @@
+artifact_uri: file:///home/jedrzejkozal/Documents/consistency-continual-learning/mlruns/124064042121652885/27267e1fe8f547dd8f5fa3017b96956f/artifacts
+end_time: 1677964487929
+entry_point_name: ''
+experiment_id: '124064042121652885'
+lifecycle_stage: active
+run_id: 27267e1fe8f547dd8f5fa3017b96956f
+run_name: extended_consistency final run 2
+run_uuid: 27267e1fe8f547dd8f5fa3017b96956f
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1677928197044
+status: 3
+tags: []
+user_id: jedrzejkozal
